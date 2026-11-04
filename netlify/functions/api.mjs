@@ -5,19 +5,18 @@ const store = getStore("24-esports-hub");
 const allowedTypes = new Set(["players", "tournaments", "announcements"]);
 const secret = () => process.env.SESSION_SECRET || "";
 const sign = value => createHmac("sha256", secret()).update(value).digest("base64url");
-const json = (statusCode, body, headers = {}) => ({
-  statusCode,
-  headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers },
-  body: JSON.stringify(body)
+const json = (status, body, extraHeaders = {}) => Response.json(body, {
+  status,
+  headers: { "cache-control": "no-store", ...extraHeaders }
 });
-function sessionCookie(event) {
-  const header = event.headers?.cookie || event.headers?.Cookie || "";
-  return header.split(";").map(part => part.trim()).find(part => part.startsWith("hub_session="))?.slice("hub_session=".length) || "";
+function sessionCookie(request) {
+  return (request.headers.get("cookie") || "").split(";").map(part => part.trim())
+    .find(part => part.startsWith("hub_session="))?.slice("hub_session=".length) || "";
 }
-function isAdmin(event) {
+function isAdmin(request) {
   try {
     if (!secret()) return false;
-    const [payload, signature] = sessionCookie(event).split(".");
+    const [payload, signature] = sessionCookie(request).split(".");
     if (!payload || !signature) return false;
     const expected = sign(payload);
     const a = Buffer.from(signature), b = Buffer.from(expected);
@@ -33,14 +32,14 @@ async function readData() {
   }
   return result;
 }
-export default async function handler(event) {
-  if (event.httpMethod === "GET") {
+export default async function handler(request) {
+  if (request.method === "GET") {
     try { return json(200, await readData()); }
     catch { return json(500, { error: "Unable to load hub data." }); }
   }
-  if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed." }, { allow: "GET, POST" });
+  if (request.method !== "POST") return json(405, { error: "Method not allowed." }, { allow: "GET, POST" });
   let body;
-  try { body = JSON.parse(event.body || "{}"); }
+  try { body = await request.json(); }
   catch { return json(400, { error: "Invalid request body." }); }
 
   if (body.action === "login") {
@@ -55,7 +54,7 @@ export default async function handler(event) {
   }
   if (body.action === "logout")
     return json(200, { ok: true }, { "set-cookie": "hub_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0" });
-  if (!isAdmin(event)) return json(401, { error: "Please sign in again." });
+  if (!isAdmin(request)) return json(401, { error: "Please sign in again." });
   if (!allowedTypes.has(body.type)) return json(400, { error: "Invalid data type." });
 
   const existing = await store.get(body.type, { type: "json" }) || [];
