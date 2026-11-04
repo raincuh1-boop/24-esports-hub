@@ -25,7 +25,7 @@
 <section class="panel"><h3>TOURNAMENT</h3><form id="eventForm" class="form"><input name="title" placeholder="Event title" required><input name="game" placeholder="Game" required><input name="date" placeholder="Date / time"><input name="region" placeholder="Region (EU / NA / All)" value="All"><input name="status" placeholder="Status" value="Upcoming"><input name="link" placeholder="Registration / info link"><button class="btn primary" type="submit">PUBLISH EVENT</button></form><div id="eventManage" class="manage-list"></div></section>
 <section class="panel full"><h3>ANNOUNCEMENT</h3><form id="announcementForm" class="form"><input name="title" placeholder="Headline" required><textarea name="body" placeholder="Write the update..." required></textarea><button class="btn primary" type="submit">PUBLISH UPDATE</button></form><div id="announcementManage" class="manage-list"></div></section>
 </div></section></div></section>
-</main><footer><a class="brand" href="#home"><span class="brandmark">24</span><span>ESPORTS <b>HUB</b><small>EST. 2024</small></span></a><span>DOESN'T MATTER WHAT YOU PLAY. BE GOOD AT IT.</span><a href="https://discord.gg/bhY5NaGZjW">DISCORD ↗</a></footer>
+</main><footer><a class="brand" href="#home"><span class="brandmark">24</span><span>ESPORTS <b>HUB</b><small>EST. 2024</small></span></a><span>DOESN'T MATTER WHAT YOU PLAY. BE GOOD AT IT.</span><a href="#admin">STAFF ACCESS ↗</a><a href="https://discord.gg/bhY5NaGZjW">DISCORD ↗</a></footer>
 <script>
 const GAMES=["Roblox","Chess","Fortnite","Rainbow Six Siege","DH Remakes","Minecraft","Rocket League","Valorant","CS2","Call of Duty","Apex Legends","Overwatch 2","Marvel Rivals","PUBG","Other"];
 const $=s=>document.querySelector(s);const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -45,5 +45,5 @@ $("#playerForm").addEventListener("submit",async e=>{e.preventDefault();try{awai
 $("#eventForm").addEventListener("submit",async e=>{e.preventDefault();try{await request({action:"save",type:"tournaments",item:formData(e.target)});e.target.reset();await load()}catch(err){alert(err.message)}});
 $("#announcementForm").addEventListener("submit",async e=>{e.preventDefault();try{await request({action:"save",type:"announcements",item:formData(e.target)});e.target.reset();await load()}catch(err){alert(err.message)}});
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-delete]");if(!b||!confirm("Delete this entry?"))return;try{await request({action:"delete",type:b.dataset.delete,id:b.dataset.id});await load()}catch(err){alert(err.message)}});
-for(const g of GAMES)$("#adminGame").add(new Option(g,g));load();if(location.hash==="#admin")setTimeout(()=>$("#admin").scrollIntoView(),100);
+for(const g of GAMES)$("#adminGame").add(new Option(g,g));load();if(location.hash==="#admin"||location.pathname==="/admin")setTimeout(()=>$("#admin").scrollIntoView(),100);
 </script></body></html>
